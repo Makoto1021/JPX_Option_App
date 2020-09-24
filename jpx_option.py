@@ -21,8 +21,6 @@ tk.Label(master, text="何日前のデータを取得しますか？", anchor='w
 tk.Label(master, text="今日のデータなら０", anchor='w', width=30, font=("Helvetica 9 italic", 10)).grid(row=1)
 tk.Label(master, text="前日は１、二日前なら２…と入力してください", anchor='w', width=30, font=("Helvetica 9 italic", 10)).grid(row=2)
 
-
-
 # tk.Label(master, text="ログ").grid(row=5)
 e1 = tk.Entry(master)
 e1.insert(10, 0)
