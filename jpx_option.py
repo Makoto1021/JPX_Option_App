@@ -9,7 +9,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from functools import partial, reduce
-from download_data import get_url, clean_dataframe, get_csv
+from download_data import get_url, clean_dataframe, get_csv, download_data
 from transform_data import *
 from prepare_option_data import prepare_option_data
 import os
@@ -62,103 +62,15 @@ def main():
 
     print("2. データのダウンロード")
     log("2. データのダウンロード")
-    
-    ### 2-2. 日中立会取引データのダウンロード
-    url_wholeday = get_url(datatype=3, day=day)
-    if url_wholeday == "No data":
-        # 休日などでファイルがない場合はエラーメッセージを返します
-        text = "%s年%s月%s日の日中立会取引データが見つかりません"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    elif url_wholeday == "No page":
-        text = "メインページが見つかりません。https://www.jpx.co.jp/markets/derivatives/participant-volume/index.html　を確認してください"
-        print(text)
-        log(text)
-    elif requests.get(url_wholeday).ok:
-        s=requests.get(url_wholeday).content
-        df_wholeday = clean_dataframe(get_csv(s, colnames = colnames), day = day)
-        filename = RAW_DATA + "日中立会取引" + str(day.year) +"-"+ str(day.month) +"-"+ str(day.day) + ".csv"
-        df_wholeday.to_csv(filename)
-        text = "%s年%s月%s日の日中立会取引データをダウンロードしました"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    else:
-        text = "何らかの理由でデータが見つかりません"
-        print(text)
-        log(text)
-    
-    ### 2-3. 日中JNET取引データのダウンロード
-    url_wholeday_JNET = get_url(datatype=4, day=day)
-    if url_wholeday == "No data":
-        # 休日などでファイルがない場合はエラーメッセージを返します
-        text = "%s年%s月%s日の日中JNET取引データが見つかりません"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    elif url_wholeday == "No page":
-        text = "メインページが見つかりません。https://www.jpx.co.jp/markets/derivatives/participant-volume/index.html　を確認してください"
-        print(text)
-        log(text)
-    elif requests.get(url_wholeday_JNET).ok:
-        s=requests.get(url_wholeday_JNET).content
-        df_wholeday_JNET = clean_dataframe(get_csv(s, colnames = colnames), day = day)
-        filename = RAW_DATA + "日中JNET取引" + str(day.year) +"-"+ str(day.month) +"-"+ str(day.day) + ".csv"
-        df_wholeday_JNET.to_csv(filename)
-        text = "%s年%s月%s日の日中JNET取引データをダウンロードしました"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    else:
-        text = "何らかの理由でデータが見つかりません"
-        print(text)
-        log(text)
-    
-    ### 2-4. ナイト立会取引データのダウンロード
-    url_night = get_url(datatype=1, day=day)
-    if url_wholeday == "No data":
-        # 休日などでファイルがない場合はエラーメッセージを返します
-        text = "%s年%s月%s日のナイト立会取引データが見つかりません"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    elif url_wholeday == "No page":
-        text = "メインページが見つかりません。https://www.jpx.co.jp/markets/derivatives/participant-volume/index.html　を確認してください"
-        print(text)
-        log(text)
-    elif requests.get(url_night).ok:
-        s=requests.get(url_night).content
-        df_night = clean_dataframe(get_csv(s, colnames = colnames), day = day)
-        filename = RAW_DATA + "ナイト立会取引" + str(day.year) +"-"+ str(day.month) +"-"+ str(day.day) + ".csv"
-        df_night.to_csv(filename)
-        text = "%s年%s月%s日のナイト立会取引データをダウンロードしました"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    else:
-        text = "何らかの理由でデータが見つかりません"
-        print(text)
-        log(text)
-    
-    ### 2-5. ナイトJNET取引データのダウンロード
-    url_night_JNET = get_url(datatype=2, day=day)
-    if url_wholeday == "No data":
-        # 休日などでファイルがない場合はエラーメッセージを返します
-        text = "%s年%s月%s日のナイトJNET取引データが見つかりません"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    elif url_wholeday == "No page":
-        text = "メインページが見つかりません。https://www.jpx.co.jp/markets/derivatives/participant-volume/index.html　を確認してください"
-        print(text)
-        log(text)
-    elif requests.get(url_night_JNET).ok:
-        s=requests.get(url_night_JNET).content
-        df_night_JNET = clean_dataframe(get_csv(s, colnames = colnames), day = day)
-        filename = RAW_DATA + "ナイトJNET取引" + str(day.year) +"-"+ str(day.month) +"-"+ str(day.day) + ".csv"
-        df_night_JNET.to_csv(filename)
-        text = "%s年%s月%s日のナイトJNET取引データをダウンロードしました"%(day.year, day.month, day.day)
-        print(text)
-        log(text)
-    else:
-        text = "何らかの理由でデータが見つかりません"
-        print(text)
-        log(text)
-    
+
+    text, df_wholeday = download_data(datatype=3, day=day, colnames=colnames, RAW_DATA=RAW_DATA)
+    log(text)
+    text, df_wholeday_JNET = download_data(datatype=4, day=day, colnames=colnames, RAW_DATA=RAW_DATA)
+    log(text)
+    text, df_night = download_data(datatype=1, day=day, colnames=colnames, RAW_DATA=RAW_DATA)
+    log(text)
+    text, df_night_JNET = download_data(datatype=2, day=day, colnames=colnames, RAW_DATA=RAW_DATA)
+    log(text)
     
     ## 3. データの初期整理
     text = "\n3. オプションの表計算を開始"

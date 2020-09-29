@@ -91,6 +91,14 @@ def clean_dataframe(df, day):
     
     return df
 
+def get_K(k):
+    k_split = k.split(" ")
+    if k_split[0].replace('\xa0', '') == 'ATM':
+        k = k_split[2]
+    else:
+        k = k_split[0]
+    return k
+
 def clean_option_table(table, gengetsu):
     df_option = pd.DataFrame(columns=["清算値", "建玉残", "取引高", "売気配IV_買気配IV", "売気配(数量) 買気配(数量)", 
                                   "IV", "前日比", "現在値", "権利行使価格", "CALL_PUT", 
@@ -136,7 +144,7 @@ def clean_option_table(table, gengetsu):
             df_option = df_option.append(new_row_c, ignore_index=True)
             df_option = df_option.append(new_row_p, ignore_index=True)
             
-    df_option['権利行使価格'] = df_option['権利行使価格'].str.split(" ", n = 1, expand = True)[0]
+    df_option['権利行使価格'] = df_option['権利行使価格'].apply(get_K)
     df_option['権利行使価格'] = df_option['権利行使価格'].str.replace(",", "")
     df_option["限月"] = gengetsu
 
@@ -168,3 +176,28 @@ def get_option_table(gengetsu):
     table = pd.read_html(response.text, attrs={"class": "price-table"})[0]
     table = clean_option_table(table, gengetsu)
     return table
+
+def download_data(datatype, day, colnames, RAW_DATA):
+    url = get_url(datatype=datatype, day=day)
+    filetype = {1:"ナイト立会取引", 2:"ナイトJNET取引", 3:"日中立会取引", 4:"日中JNET取引"}
+    if url == "No data":
+        # 休日などでファイルがない場合はエラーメッセージを返します
+        text = "%s年%s月%s日の%sデータが見つかりません"%(day.year, day.month, day.day, filetype[datatype])
+        print(text)
+        return text, None
+    elif url == "No page":
+        text = "メインページが見つかりません。https://www.jpx.co.jp/markets/derivatives/participant-volume/index.html　を確認してください"
+        print(text)
+        return text, None
+    elif requests.get(url).ok:
+        s=requests.get(url).content
+        df = clean_dataframe(get_csv(s, colnames = colnames), day = day)
+        filename = RAW_DATA + filetype[datatype] + str(day.year) +"-"+ str(day.month) +"-"+ str(day.day) + ".csv"
+        df.to_csv(filename)
+        text = "%s年%s月%s日の%sデータをダウンロードしました"%(day.year, day.month, day.day, filetype[datatype])
+        print(text)
+        return text, df
+    else:
+        text = "何らかの理由でデータが見つかりません"
+        print(text)
+        return text, None
