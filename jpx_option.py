@@ -17,13 +17,14 @@ import glob
 
 master = tk.Tk()
 master.geometry('600x800')
-tk.Label(master, text="何日前のデータを取得しますか？", anchor='w', width=30).grid(row=0)
-tk.Label(master, text="今日のデータなら０", anchor='w', width=30, font=("Helvetica 9 italic", 10)).grid(row=1)
-tk.Label(master, text="前日は１、二日前なら２…と入力してください", anchor='w', width=30, font=("Helvetica 9 italic", 10)).grid(row=2)
+tk.Label(master, text="いつのデータを取得しますか？", anchor='w', width=30).grid(row=0)
+tk.Label(master, text="年-月-日のフォーマットで入力してください", anchor='w', width=30, font=("Helvetica 9 italic", 10)).grid(row=1)
+# tk.Label(master, text="前日は１、二日前なら２…と入力してください", anchor='w', width=30, font=("Helvetica 9 italic", 10)).grid(row=2)
 
 # tk.Label(master, text="ログ").grid(row=5)
+today = dt.today().strftime("%Y-%m-%d")
 e1 = tk.Entry(master)
-e1.insert(10, 0)
+e1.insert(10, today)
 e1.grid(row=0, column=1)
 
 # ログ記録用の箱をつくる
@@ -52,10 +53,10 @@ def log(msg):
 
 def main():
 
-    days = int(e1.get())
-    print("days", days)
+    day = dt.strptime(e1.get(), '%Y-%m-%d')
+    print("day", day)
 
-    day = dt.today() - timedelta(days=days)
+    # day = dt.today() - timedelta(days=days)
     colnames = ['institutions_sell_code', 'institutions_sell', 
             'institutions_sell_eng', 'volume_sell', 'institutions_buy_code', 
             'institutions_buy', 'institutions_buy_eng', 'volume_buy']
@@ -77,10 +78,10 @@ def main():
     print(text)
     log(text)
 
-    df_wholeday_op_final = prepare_option_data(df_wholeday)
-    df_wholeday_JNET_op_final = prepare_option_data(df_wholeday_JNET)
-    df_night_op_final = prepare_option_data(df_night)
-    df_night_JNET_op_final = prepare_option_data(df_night_JNET)
+    df_wholeday_op_final = prepare_option_data(df_wholeday, day)
+    df_wholeday_JNET_op_final = prepare_option_data(df_wholeday_JNET, day)
+    df_night_op_final = prepare_option_data(df_night, day)
+    df_night_JNET_op_final = prepare_option_data(df_night_JNET, day)
 
     ## 9. CSV/Excelファイルに保存
     text = "\n4. Excelファイルに保存します"
